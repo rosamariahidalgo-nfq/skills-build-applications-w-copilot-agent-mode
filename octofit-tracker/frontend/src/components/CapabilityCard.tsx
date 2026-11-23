@@ -1,37 +1,15 @@
-import { useEffect, useState, type ReactNode } from 'react';
-import { getJson } from '../api/client.js';
+import type { ReactNode } from 'react';
 
 type Props<T> = {
   title: string;
   description: string;
-  path: string;
-  responseKey: string;
   emptyText: string;
+  items: T[] | null;
+  error: string | null;
   renderItem: (item: T, index: number) => ReactNode;
 };
 
-export function CapabilityCard<T>({ title, description, path, responseKey, emptyText, renderItem }: Props<T>) {
-  const [items, setItems] = useState<T[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    let active = true;
-    setItems(null);
-    setError(null);
-
-    getJson<Record<string, T[]>>(path)
-      .then((response) => {
-        if (active) setItems(response[responseKey] ?? []);
-      })
-      .catch((requestError: unknown) => {
-        if (active) setError(requestError instanceof Error ? requestError.message : 'Unable to load data');
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [path, responseKey]);
-
+export function CapabilityCard<T>({ title, description, emptyText, items, error, renderItem }: Props<T>) {
   return (
     <section className="card h-100">
       <div className="card-body">
