@@ -30,20 +30,20 @@ OctoFit Tracker is a three-tier application for a school fitness program. The st
 
 Record your plan here before editing code.
 
-- Presentation tier decision:
-- Logic tier decision:
-- Data tier decision:
-- Activity tracking approach:
-- Team management approach:
-- Leaderboard approach:
-- Workout suggestions approach:
+- Presentation tier decision: Build React 19 pages and navigation routes in `octofit-tracker/frontend/src` with Bootstrap styling and a shared API client calling relative `/api` paths (proxied by Vite on port `5173` to `http://localhost:8000`), keeping business logic and direct database access out of UI components.
+- Logic tier decision: Implement Express and TypeScript route handlers and service functions in `octofit-tracker/backend/src` on port `8000` to validate request payloads, return deliberate 4xx errors instead of unhandled 500 cast errors, and orchestrate data operations.
+- Data tier decision: Define Mongoose schemas and models in `octofit-tracker/backend/src/models` along with an idempotent seed script in `octofit-tracker/backend/src/scripts/seed.ts` targeting MongoDB on port `27017`.
+- Activity tracking approach: Implement `GET /api/activities` and `POST /api/activities`; validate that `userId` and `teamId` are valid ObjectIds referencing existing user and team records (returning `400` or `404` otherwise), compute `points` from activity type and `minutes`, and persist `user`, `team`, `type`, `minutes`, `points`, and `occurredAt`.
+- Team management approach: Implement `GET /api/teams` and `POST /api/teams` to list and create teams with `name`, `mascot`, and member references, returning `400` whenever `name` is missing or empty.
+- Leaderboard approach: Implement `GET /api/leaderboard` to aggregate total activity points per team, sort teams in descending order of `totalPoints`, and return objects with `teamName`, `totalPoints`, and a 1-based `rank`.
+- Workout suggestions approach: Implement `GET /api/workouts/suggestions/:userEmail` to look up the user by email (returning `404` when no match exists) and return tailored workout recommendations where the first entry's `focus` and `reason` match the user's goal or recent activity history.
 
 ## Test plan
 
 Record the commands you run and what each failure means.
 
-- Data-tier command: `npm run test:data --prefix octofit-tracker/backend`
-- API command: `npm run test:api --prefix octofit-tracker/backend`
-- Frontend command: `npm test --prefix octofit-tracker/frontend`
-- Backend build command: `npm run build --prefix octofit-tracker/backend`
-- Frontend build command: `npm run build --prefix octofit-tracker/frontend`
+- Data-tier command: `npm run test:data --prefix octofit-tracker/backend` — Verifies Mongoose schemas, validation rules, model relations, and seed data persistence in MongoDB (`27017`); failures indicate missing schema fields, broken constraints, or seeding errors.
+- API command: `npm run test:api --prefix octofit-tracker/backend` — Verifies Express `/api/*` endpoints, HTTP status codes (2xx and deliberate 4xx validation), leaderboard sorting/ranking, and workout suggestions; failures indicate route, validation, or service-layer defects.
+- Frontend command: `npm test --prefix octofit-tracker/frontend` — Verifies React Router views, Bootstrap UI rendering, user interactions, and shared API client calls; failures indicate broken component state, form handling, or API contract mismatches.
+- Backend build command: `npm run build --prefix octofit-tracker/backend` — Compiles the TypeScript backend in `octofit-tracker/backend`; failures indicate type mismatches, invalid imports, or `tsconfig` issues.
+- Frontend build command: `npm run build --prefix octofit-tracker/frontend` — Builds the Vite + React production bundle in `octofit-tracker/frontend`; failures indicate TypeScript/JSX compilation errors or broken module references.
